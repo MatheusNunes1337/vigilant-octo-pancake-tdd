@@ -1,13 +1,11 @@
 class LoginRouter {
   route(httpRequest) {
+    if (!httpRequest) return { statusCode: 500 };
     const { email, password } = httpRequest;
 
-    if (!email || !password) {
-      return {
-        statusCode: 400,
-      };
-    }
-    return 200;
+    if (!email || !password) return { statusCode: 400 };
+
+    return { statusCode: 200 };
   }
 }
 
@@ -31,6 +29,14 @@ describe('Given the Login Router', () => {
       };
       const httpResponse = sut.route(httpRequest);
       expect(httpResponse.statusCode).toBe(400);
+    });
+  });
+
+  describe('When httpRequest is not provided', () => {
+    test('Then it expects to return status code 500', () => {
+      const sut = new LoginRouter();
+      const httpResponse = sut.route();
+      expect(httpResponse.statusCode).toBe(500);
     });
   });
 });
