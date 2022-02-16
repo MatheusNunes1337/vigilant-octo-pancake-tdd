@@ -22,15 +22,15 @@ describe('Given the Login Router', () => {
       expect(httpResponse.statusCode).toBe(400);
     });
   });
-});
 
-describe('When email is not provided', () => {
-  test('Then it expects to return status code 400', () => {
-    const sut = new LoginRouter();
-    const httpRequest = {
-      email: 'any_email@mail.com',
-    };
-    const httpResponse = sut.route(httpRequest);
-    expect(httpResponse.statusCode).toBe(400);
+  describe('When password is not provided', () => {
+    test('Then it expects to return status code 400', () => {
+      const sut = new LoginRouter();
+      const httpRequest = {
+        email: 'any_email@mail.com',
+      };
+      const httpResponse = sut.route(httpRequest);
+      expect(httpResponse.statusCode).toBe(400);
+    });
   });
 });
