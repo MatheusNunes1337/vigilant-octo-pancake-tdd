@@ -100,4 +100,24 @@ describe('Given the Login Router', () => {
       expect(authUseCaseSpy.password).toBe(httpRequest.body.password);
     });
   });
+
+  describe('When it calls AuthUseCase with invalid credentials', () => {
+    const { sut } = makeSut();
+    let httpRequest;
+    let httpResponse;
+
+    beforeAll(() => {
+      httpRequest = {
+        body: {
+          email: 'invalid_email@mail.com',
+          password: 'invalid_password',
+        },
+      };
+      httpResponse = sut.route(httpRequest);
+    });
+
+    test('Then it expects to return status code 401', () => {
+      expect(httpResponse.statusCode).toBe(401);
+    });
+  });
 });
