@@ -160,18 +160,23 @@ describe('Given the Login Router', () => {
   });
 
   describe('When valid credentials are provided', () => {
-    test('Then it expects to return status code 200', () => {
-      const { sut, authUseCaseSpy } = makeSut();
-      authUseCaseSpy.accessToken = 'valid_token';
+    let httpRequest;
+    let httpResponse;
+    const { sut, authUseCaseSpy } = makeSut();
+    authUseCaseSpy.accessToken = 'valid_token';
 
-      const httpRequest = {
+    beforeAll(() => {
+      httpRequest = {
         body: {
           email: 'valid_email@mail.com',
           password: 'valid_password',
         },
       };
-      const httpResponse = sut.route(httpRequest);
-      expect(httpResponse.statusCode).toBe(200);
+
+      httpResponse = sut.route(httpRequest);
+    });
+    test('Then it expects to return the access token', () => {
+      expect(httpResponse.body.accessToken).toEqual(authUseCaseSpy.accessToken);
     });
   });
 });
