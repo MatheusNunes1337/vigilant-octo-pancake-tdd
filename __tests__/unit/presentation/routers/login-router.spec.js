@@ -3,13 +3,6 @@ const MissingParamError = require('../../../../src/presentation/helpers/errors/m
 const UnauthorizedError = require('../../../../src/presentation/helpers/errors/unauthorized-error');
 const LoginRouter = require('../../../../src/presentation/routers/login-router');
 
-const makeSut = () => {
-  const authUseCaseSpy = makeAuthUseCase()
-  const sut = new LoginRouter(authUseCaseSpy);
-
-  return { sut, authUseCaseSpy };
-};
-
 const makeAuthUseCase = () => {
   class AuthUseCaseSpy {
     async auth(email, password) {
@@ -20,6 +13,13 @@ const makeAuthUseCase = () => {
   }
 
   return new AuthUseCaseSpy();
+};
+
+const makeSut = () => {
+  const authUseCaseSpy = makeAuthUseCase();
+  const sut = new LoginRouter(authUseCaseSpy);
+
+  return { sut, authUseCaseSpy };
 };
 
 const makeAuthUseCaseWithError = () => {
@@ -152,7 +152,7 @@ describe('Given the Login Router', () => {
   });
 
   describe('When AuthUseCase is not provided', () => {
-    test('Then it expects to return status code 500', async() => {
+    test('Then it expects to return status code 500', async () => {
       const sut = new LoginRouter();
 
       const httpRequest = {
@@ -208,17 +208,17 @@ describe('Given the Login Router', () => {
 
   describe('When AuthUseCase throws an error', () => {
     test('Then it expects to return status code 500', async () => {
-      const authUseCaseSpy = makeAuthUseCaseWithError()
-      const sut = new LoginRouter(authUseCaseSpy)
+      const authUseCaseSpy = makeAuthUseCaseWithError();
+      const sut = new LoginRouter(authUseCaseSpy);
 
       const httpRequest = {
-         body: {
-            email: 'any_email',
-            password: 'any_email@mail.com'
-         }
-      }
-      const httpResponse = await sut.route(httpRequest)
-      expect(httpResponse.statusCode).toBe(500)
-    })
+        body: {
+          email: 'any_email',
+          password: 'any_email@mail.com',
+        },
+      };
+      const httpResponse = await sut.route(httpRequest);
+      expect(httpResponse.statusCode).toBe(500);
+    });
   });
 });
