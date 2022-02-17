@@ -7,6 +7,7 @@ const makeSut = () => {
     auth(email, password) {
       this.email = email;
       this.password = password;
+      return this.accessToken;
     }
   }
 
@@ -103,9 +104,10 @@ describe('Given the Login Router', () => {
   });
 
   describe('When it calls AuthUseCase with invalid credentials', () => {
-    const { sut } = makeSut();
+    const { sut, authUseCaseSpy } = makeSut();
     let httpRequest;
     let httpResponse;
+    authUseCaseSpy.accessToken = null;
 
     beforeAll(() => {
       httpRequest = {
@@ -127,34 +129,49 @@ describe('Given the Login Router', () => {
   });
 
   describe('When AuthUseCase is not provided', () => {
-    const sut = new LoginRouter();
-
-    const httpRequest = {
-      body: {
-        email: 'any_email@mail.com',
-        password: 'any_password',
-      },
-    };
-    const httpResponse = sut.route(httpRequest);
-
     test('Then it expects to return status code 500', () => {
+      const sut = new LoginRouter();
+
+      const httpRequest = {
+        body: {
+          email: 'any_email@mail.com',
+          password: 'any_password',
+        },
+      };
+      const httpResponse = sut.route(httpRequest);
+
       expect(httpResponse.statusCode).toBe(500);
     });
   });
 
   describe('When AuthUseCase has no auth method', () => {
-    const sut = new LoginRouter({});
-
-    const httpRequest = {
-      body: {
-        email: 'invalid_email@mail.com',
-        password: 'invalid_password',
-      },
-    };
-    const httpResponse = sut.route(httpRequest);
-
     test('Then it expects to return status code 500', () => {
+      const sut = new LoginRouter({});
+
+      const httpRequest = {
+        body: {
+          email: 'invalid_email@mail.com',
+          password: 'invalid_password',
+        },
+      };
+      const httpResponse = sut.route(httpRequest);
       expect(httpResponse.statusCode).toBe(500);
+    });
+  });
+
+  describe('When valid credentials are provided', () => {
+    test('Then it expects to return status code 200', () => {
+      const { sut, authUseCaseSpy } = makeSut();
+      authUseCaseSpy.accessToken = 'valid_token';
+
+      const httpRequest = {
+        body: {
+          email: 'valid_email@mail.com',
+          password: 'valid_password',
+        },
+      };
+      const httpResponse = sut.route(httpRequest);
+      expect(httpResponse.statusCode).toBe(200);
     });
   });
 });
