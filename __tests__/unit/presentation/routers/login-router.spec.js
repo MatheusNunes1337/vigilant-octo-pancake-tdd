@@ -1,3 +1,4 @@
+const InternalServerError = require('../../../../src/presentation/helpers/errors/internal-server-error');
 const MissingParamError = require('../../../../src/presentation/helpers/errors/missing-param-error');
 const UnauthorizedError = require('../../../../src/presentation/helpers/errors/unauthorized-error');
 const LoginRouter = require('../../../../src/presentation/routers/login-router');
@@ -65,10 +66,18 @@ describe('Given the Login Router', () => {
   });
 
   describe('When httpRequest is not provided', () => {
+    let httpResponse;
+    const { sut } = makeSut();
+    beforeAll(() => {
+      httpResponse = sut.route();
+    });
+
     test('Then it expects to return status code 500', () => {
-      const { sut } = makeSut();
-      const httpResponse = sut.route();
       expect(httpResponse.statusCode).toBe(500);
+    });
+
+    test('Then it expects to return status code 500', () => {
+      expect(httpResponse.body).toEqual(new InternalServerError());
     });
   });
 
@@ -150,8 +159,8 @@ describe('Given the Login Router', () => {
 
       const httpRequest = {
         body: {
-          email: 'invalid_email@mail.com',
-          password: 'invalid_password',
+          email: 'any_email@mail.com',
+          password: 'any_password',
         },
       };
       const httpResponse = sut.route(httpRequest);
