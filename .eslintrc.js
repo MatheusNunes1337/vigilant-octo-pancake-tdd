@@ -15,5 +15,6 @@ module.exports = {
     'no-console': 'off',
     'linebreak-style': 'off',
     'class-methods-use-this': 'off',
+    'max-classes-per-file': [true, 5, 'exclude-class-expressions'],
   },
 };

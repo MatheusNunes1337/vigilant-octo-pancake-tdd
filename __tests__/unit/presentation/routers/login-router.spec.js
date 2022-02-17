@@ -4,18 +4,32 @@ const UnauthorizedError = require('../../../../src/presentation/helpers/errors/u
 const LoginRouter = require('../../../../src/presentation/routers/login-router');
 
 const makeSut = () => {
+  const authUseCaseSpy = makeAuthUseCase()
+  const sut = new LoginRouter(authUseCaseSpy);
+
+  return { sut, authUseCaseSpy };
+};
+
+const makeAuthUseCase = () => {
   class AuthUseCaseSpy {
-    auth(email, password) {
+    async auth(email, password) {
       this.email = email;
       this.password = password;
       return this.accessToken;
     }
   }
 
-  const authUseCaseSpy = new AuthUseCaseSpy();
-  const sut = new LoginRouter(authUseCaseSpy);
+  return new AuthUseCaseSpy();
+};
 
-  return { sut, authUseCaseSpy };
+const makeAuthUseCaseWithError = () => {
+  class AuthUseCaseSpy {
+    async auth() {
+      throw new Error();
+    }
+  }
+
+  return new AuthUseCaseSpy();
 };
 
 describe('Given the Login Router', () => {
@@ -24,13 +38,13 @@ describe('Given the Login Router', () => {
     let httpResponse;
     const { sut } = makeSut();
 
-    beforeAll(() => {
+    beforeAll(async () => {
       httpRequest = {
         body: {
           password: 'any_password',
         },
       };
-      httpResponse = sut.route(httpRequest);
+      httpResponse = await sut.route(httpRequest);
     });
 
     test('Then it expects to return status code 400', () => {
@@ -47,13 +61,13 @@ describe('Given the Login Router', () => {
     let httpResponse;
     const { sut } = makeSut();
 
-    beforeAll(() => {
+    beforeAll(async () => {
       httpRequest = {
         body: {
           email: 'any_email@mail.com',
         },
       };
-      httpResponse = sut.route(httpRequest);
+      httpResponse = await sut.route(httpRequest);
     });
 
     test('Then it expects to return status code 400', () => {
@@ -68,8 +82,8 @@ describe('Given the Login Router', () => {
   describe('When httpRequest is not provided', () => {
     let httpResponse;
     const { sut } = makeSut();
-    beforeAll(() => {
-      httpResponse = sut.route();
+    beforeAll(async () => {
+      httpResponse = await sut.route();
     });
 
     test('Then it expects to return status code 500', () => {
@@ -82,9 +96,9 @@ describe('Given the Login Router', () => {
   });
 
   describe('When httpRequest has no body', () => {
-    test('Then it expects to return status code 500', () => {
+    test('Then it expects to return status code 500', async () => {
       const { sut } = makeSut();
-      const httpResponse = sut.route({});
+      const httpResponse = await sut.route({});
       expect(httpResponse.statusCode).toBe(500);
     });
   });
@@ -118,14 +132,14 @@ describe('Given the Login Router', () => {
     let httpResponse;
     authUseCaseSpy.accessToken = null;
 
-    beforeAll(() => {
+    beforeAll(async () => {
       httpRequest = {
         body: {
           email: 'invalid_email@mail.com',
           password: 'invalid_password',
         },
       };
-      httpResponse = sut.route(httpRequest);
+      httpResponse = await sut.route(httpRequest);
     });
 
     test('Then it expects to return status code 401', () => {
@@ -138,7 +152,7 @@ describe('Given the Login Router', () => {
   });
 
   describe('When AuthUseCase is not provided', () => {
-    test('Then it expects to return status code 500', () => {
+    test('Then it expects to return status code 500', async() => {
       const sut = new LoginRouter();
 
       const httpRequest = {
@@ -147,14 +161,14 @@ describe('Given the Login Router', () => {
           password: 'any_password',
         },
       };
-      const httpResponse = sut.route(httpRequest);
+      const httpResponse = await sut.route(httpRequest);
 
       expect(httpResponse.statusCode).toBe(500);
     });
   });
 
   describe('When AuthUseCase has no auth method', () => {
-    test('Then it expects to return status code 500', () => {
+    test('Then it expects to return status code 500', async () => {
       const sut = new LoginRouter({});
 
       const httpRequest = {
@@ -163,7 +177,7 @@ describe('Given the Login Router', () => {
           password: 'any_password',
         },
       };
-      const httpResponse = sut.route(httpRequest);
+      const httpResponse = await sut.route(httpRequest);
       expect(httpResponse.statusCode).toBe(500);
     });
   });
@@ -174,18 +188,37 @@ describe('Given the Login Router', () => {
     const { sut, authUseCaseSpy } = makeSut();
     authUseCaseSpy.accessToken = 'valid_token';
 
-    beforeAll(() => {
+    beforeAll(async () => {
       httpRequest = {
         body: {
           email: 'valid_email@mail.com',
           password: 'valid_password',
         },
       };
-
-      httpResponse = sut.route(httpRequest);
+      httpResponse = await sut.route(httpRequest);
     });
+    test('Then it expects to return status code 200', () => {
+      expect(httpResponse.statusCode).toBe(200);
+    });
+
     test('Then it expects to return the access token', () => {
       expect(httpResponse.body.accessToken).toEqual(authUseCaseSpy.accessToken);
     });
+  });
+
+  describe('When AuthUseCase throws an error', () => {
+    test('Then it expects to return status code 500', async () => {
+      const authUseCaseSpy = makeAuthUseCaseWithError()
+      const sut = new LoginRouter(authUseCaseSpy)
+
+      const httpRequest = {
+         body: {
+            email: 'any_email',
+            password: 'any_email@mail.com'
+         }
+      }
+      const httpResponse = await sut.route(httpRequest)
+      expect(httpResponse.statusCode).toBe(500)
+    })
   });
 });
