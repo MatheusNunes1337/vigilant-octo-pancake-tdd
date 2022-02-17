@@ -1,4 +1,5 @@
 const MissingParamError = require('../../../../src/presentation/helpers/errors/missing-param-error');
+const UnauthorizedError = require('../../../../src/presentation/helpers/errors/unauthorized-error');
 const LoginRouter = require('../../../../src/presentation/routers/login-router');
 
 const makeSut = () => {
@@ -118,6 +119,10 @@ describe('Given the Login Router', () => {
 
     test('Then it expects to return status code 401', () => {
       expect(httpResponse.statusCode).toBe(401);
+    });
+
+    test('Then it expects to return a body with UnauthorizedError', () => {
+      expect(httpResponse.body).toEqual(new UnauthorizedError());
     });
   });
 });
